@@ -12,7 +12,8 @@
                 --border: #e5e7eb;
                 --tag-bg: #e0e7ff;
                 --tag-text: #3730a3;
-                --tag-important: #d87676;
+                --tag-important: #76d87e;
+                --tag-completed: #4edf5a;
             }
 
             * {
@@ -158,6 +159,16 @@
                 padding: 0.2rem 0.5rem;
                 border-radius: 9999px;
                 background-color: var(--tag-important);
+                color: var(--tag-text);
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            .completed_badge{
+                font-size: 0.75rem;
+                padding: 0.2rem 0.5rem;
+                border-radius: 9999px;
+                background-color: var(--tag-completed);
                 color: var(--tag-text);
                 font-weight: 600;
                 text-transform: uppercase;
@@ -317,6 +328,7 @@
                      <div class="schedule_card">
                         <div class="schedule_title">Deadline for interviews
                             <span class="deadline_badge">Deadline</span>
+                            <span class="completed_badge">Completed</span>
                         </div>
                         <div class="schedule_date">Tuesday 09/22/2026 @12:00 AM</div>
                         <div class="schedule_details">Use template from teams and share document in the same folder</div>
