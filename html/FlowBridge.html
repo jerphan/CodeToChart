@@ -6,7 +6,10 @@
     </head>
     <body>
         <h1 id="buttonDescription">Click here to upload a Python File</h1>
-        <button id="uploadFileButton">Upload file</button>
+        <form action="/action_page.php">
+            <input type="file" id="userFile" name="userFile">
+            <input type="submit" value="upload">
+        </form>
         <script src="../js/FlowBridgeScript.js"></script>
     </body>
 <html>

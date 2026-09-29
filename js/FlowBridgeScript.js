@@ -1,8 +1,8 @@
-const uploadFileButton = document.getElementById("uploadFileButton");
+const userFile = document.getElementById("userFile");
 const descriptionText = document.getElementById("buttonDescription")
 
 function uploadFile(){
     descriptionText.textContent = "Button clicked";
 }
 
-uploadFileButton.addEventListener("click", uploadFile);
+userFile.addEventListener("click", uploadFile);
