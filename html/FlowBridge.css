@@ -1,0 +1,162 @@
+/* General Reset & Layout Setup */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #f4f6f8;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Navbar Styles */
+.heading {
+    height: 70px;
+    background-color: #f0f0f0;
+    border-bottom: 2px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+}
+
+.headingLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.headingRight {
+    display: flex;
+    align-items: center;
+}
+
+.headingCenter {
+    display: flex;
+    align-items: center;
+}
+
+.logoIcon {
+    width: 40px;
+    height: auto;
+}
+
+.brandName {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1a73e8;
+    letter-spacing: -0.5px;
+}
+
+.startButton {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    height: fit-content;
+    width: fit-content;
+}
+
+.user-profile {
+    background-color: #d0e1fd;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Workspace Layout */
+.workspace {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    padding: 16px;
+    gap: 16px;
+}
+
+/* Left Sidebar Toolbar */
+.sidebarLeft {
+    width: 60px;
+    background-color: #dcdcdc;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.toolbarTop, .toolbar-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+.toolIcon {
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+/* Content Grid Area */
+.contentGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    flex: 1;
+    height: 100%;
+}
+
+/* Cards Layout */
+.card {
+    background-color: #dcdcdc;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+}
+
+.cardHeader {
+    background-color: #1a73e8;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    padding: 12px;
+    margin: 8px;
+    border-radius: 8px;
+}
+
+.cardBody {
+    flex: 1;
+    margin: 0 8px 8px 8px;
+    background-color: #d0d0d0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.flowchartBody {
+    background-color: #ffffff;
+    padding: 10px;
+}
+
+.flowchartImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}

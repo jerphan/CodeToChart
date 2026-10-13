@@ -1,4 +1,68 @@
 <!DOCTYPE html>
-<html>
-    <iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width=100vw height=100hw src="https://embed.figma.com/site/0nZ04TDmTAhrGmaHYW26bp/Capstone?node-id=0-1&embed-host=share" allowfullscreen></iframe>
-<html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FlowBridge</title>
+        <link rel="stylesheet" href="FlowBridge.css">
+    </head>
+    <body>
+        <!-- Top Navigation Bar -->
+        <header class="heading">
+            <div class="headingLeft">
+                <img src="FlowBridgeIcon.png" alt="Logo Icon" class="logoIcon">
+                <span class="brandName">FlowBridge</span>
+            </div>
+            <div class="headingCenter">
+                <button class="startButton">
+                    <img src="StartButton.png", alt="Start Button">
+                </button>
+            </div>
+            <div class="headingRight">
+                <div class="user-profile">
+                    <img src="ProfilePicture.png" alt="Profile Icon">
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Area -->
+        <div class="workspace">
+            
+            <!-- Left Vertical Toolbar -->
+            <aside class="sidebarLeft">
+                <div class="toolbarTop">
+                    <img src="UploadFileButton.png" alt="Upload Icon" class="toolIcon">
+                    <img src="ExportButton.png" alt="Export Icon" class="toolIcon">
+                </div>
+                <div class="toolbar-bottom">
+                    <img src="SettingsIcon.png" alt="Settings Icon" class="toolIcon">
+                </div>
+            </aside>
+
+            <!-- Main Content Grid -->
+            <main class="contentGrid">
+                
+                <!-- Files Section -->
+                <section class="card">
+                    <div class="cardHeader">Files</div>
+                    <div class="cardBody"></div>
+                </section>
+
+                <!-- Source Code Section -->
+                <section class="card">
+                    <div class="cardHeader">Source Code</div>
+                    <div class="cardBody"></div>
+                </section>
+
+                <!-- FlowChart Section -->
+                <section class="card">
+                    <div class="cardHeader">FlowChart</div>
+                    <div class="cardBody flowchartBody">
+                        <img src="ExampleScreenShot.jpg" alt="Flowchart" class="flowchartImage">
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </body>
+</html>
