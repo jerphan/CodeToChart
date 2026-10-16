@@ -109,6 +109,12 @@ body {
     transition: opacity 0.2s;
 }
 
+.toolButton{
+    border: none;
+    background: none;
+    display: none;
+}
+
 /* Content Grid Area */
 .contentGrid {
     display: grid;
