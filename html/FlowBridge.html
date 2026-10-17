@@ -21,7 +21,12 @@
             </div>
             <div class="headingRight">
                 <div class="user-profile">
-                    <img src="ProfilePicture.png" alt="Profile Icon">
+                    <div>
+                        <label for="loginButton">
+                            <img src="ProfilePicture.png" alt="Profile Icon" class="loginIcon">
+                        </label>
+                        <input type="button" id=loginButton class="toolButton" onclick="openLogin()">
+                    </div>
                 </div>
             </div>
         </header>
@@ -36,7 +41,7 @@
                         <label for="fileUpload">
                             <img src="UploadFileButton.png" alt="Upload Icon" class="toolIcon">
                         </label>
-                        <input type="file" id="fileUpload", class="toolButton">
+                        <input type="file" id="fileUpload" class="toolButton">
                     </div>
                     <img src="ExportButton.png" alt="Export Icon" class="toolIcon">
                 </div>

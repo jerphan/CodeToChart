@@ -1,8 +1,27 @@
-const userFile = document.getElementById("userFile");
-const descriptionText = document.getElementById("buttonDescription")
+const userFile = document.getElementById("fileUpload").addEventListener("submit", uploadFile);
+const login = document.getElementById("loginButton").addEventListener("click", openLogin);
+
+var codeEditor = document.getElementById('codeEditor');
 
 function uploadFile(){
-    descriptionText.textContent = "Button clicked";
+    codeEditor.contentWindow.postMessage({
+        eventType: "populateCode",
+        language: "python",
+        files: [
+            {
+                "name": "fileName.py",
+                "content": "../FlowBridgeScript.s"
+            }
+        ]
+    }, "*")
 }
 
-userFile.addEventListener("click", uploadFile);
+function openLogin(){
+    window.open(
+        //https://theadaptablescapstone.com/html/FlowBridgeLogin
+        "./FlowBridgeLogin.html",
+        "Login Or Sign-Up",
+        "width=600, height=200, resizable=yes"
+        
+    );
+}
