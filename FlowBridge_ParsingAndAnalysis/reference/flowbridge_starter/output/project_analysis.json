@@ -1,0 +1,376 @@
+{
+  "projectId": "P001",
+  "projectName": "Calculator",
+  "revisionId": 1,
+  "rootGraphId": "P001:PROJECT",
+  "status": "ok",
+  "graphs": {
+    "P001:PROJECT": {
+      "graphId": "P001:PROJECT",
+      "viewType": "project",
+      "nodes": [
+        {
+          "nodeId": "P001:PROJECT:N001",
+          "nodeType": "file",
+          "label": "calculator.py",
+          "sourceLocation": null
+        }
+      ],
+      "edges": []
+    },
+    "P001:F001:FILE": {
+      "graphId": "P001:F001:FILE",
+      "viewType": "file",
+      "fileId": "F001",
+      "nodes": [
+        {
+          "nodeId": "P001:F001:FILE:N001",
+          "nodeType": "function",
+          "label": "calculate",
+          "sourceLocation": {
+            "fileId": "F001",
+            "startLine": 1,
+            "startColumn": 0,
+            "endLine": 6,
+            "endColumn": 17
+          }
+        },
+        {
+          "nodeId": "P001:F001:FILE:N002",
+          "nodeType": "function",
+          "label": "main",
+          "sourceLocation": {
+            "fileId": "F001",
+            "startLine": 8,
+            "startColumn": 0,
+            "endLine": 10,
+            "endColumn": 17
+          }
+        }
+      ],
+      "edges": []
+    },
+    "P001:F001:FN001:FUNC": {
+      "graphId": "P001:F001:FN001:FUNC",
+      "viewType": "function",
+      "functionId": "F001:FN001",
+      "nodes": [
+        {
+          "nodeId": "P001:F001:FN001:FUNC:N001",
+          "nodeType": "start",
+          "label": "Start",
+          "sourceLocation": null
+        },
+        {
+          "nodeId": "P001:F001:FN001:FUNC:N002",
+          "nodeType": "end",
+          "label": "End",
+          "sourceLocation": null
+        },
+        {
+          "nodeId": "P001:F001:FN001:FUNC:N003",
+          "nodeType": "decision",
+          "label": "a > b",
+          "sourceLocation": {
+            "fileId": "F001",
+            "startLine": 2,
+            "startColumn": 7,
+            "endLine": 2,
+            "endColumn": 12
+          }
+        },
+        {
+          "nodeId": "P001:F001:FN001:FUNC:N004",
+          "nodeType": "process",
+          "label": "result = a - b",
+          "sourceLocation": {
+            "fileId": "F001",
+            "startLine": 3,
+            "startColumn": 8,
+            "endLine": 3,
+            "endColumn": 22
+          }
+        },
+        {
+          "nodeId": "P001:F001:FN001:FUNC:N005",
+          "nodeType": "process",
+          "label": "result = a + b",
+          "sourceLocation": {
+            "fileId": "F001",
+            "startLine": 5,
+            "startColumn": 8,
+            "endLine": 5,
+            "endColumn": 22
+          }
+        },
+        {
+          "nodeId": "P001:F001:FN001:FUNC:N006",
+          "nodeType": "return",
+          "label": "return result",
+          "sourceLocation": {
+            "fileId": "F001",
+            "startLine": 6,
+            "startColumn": 4,
+            "endLine": 6,
+            "endColumn": 17
+          }
+        }
+      ],
+      "edges": [
+        {
+          "edgeId": "P001:F001:FN001:FUNC:E001",
+          "sourceId": "P001:F001:FN001:FUNC:N001",
+          "targetId": "P001:F001:FN001:FUNC:N003",
+          "edgeType": "normal"
+        },
+        {
+          "edgeId": "P001:F001:FN001:FUNC:E002",
+          "sourceId": "P001:F001:FN001:FUNC:N003",
+          "targetId": "P001:F001:FN001:FUNC:N004",
+          "edgeType": "true"
+        },
+        {
+          "edgeId": "P001:F001:FN001:FUNC:E003",
+          "sourceId": "P001:F001:FN001:FUNC:N003",
+          "targetId": "P001:F001:FN001:FUNC:N005",
+          "edgeType": "false"
+        },
+        {
+          "edgeId": "P001:F001:FN001:FUNC:E004",
+          "sourceId": "P001:F001:FN001:FUNC:N004",
+          "targetId": "P001:F001:FN001:FUNC:N006",
+          "edgeType": "normal"
+        },
+        {
+          "edgeId": "P001:F001:FN001:FUNC:E005",
+          "sourceId": "P001:F001:FN001:FUNC:N005",
+          "targetId": "P001:F001:FN001:FUNC:N006",
+          "edgeType": "normal"
+        },
+        {
+          "edgeId": "P001:F001:FN001:FUNC:E006",
+          "sourceId": "P001:F001:FN001:FUNC:N006",
+          "targetId": "P001:F001:FN001:FUNC:N002",
+          "edgeType": "return"
+        }
+      ]
+    },
+    "P001:F001:FN002:FUNC": {
+      "graphId": "P001:F001:FN002:FUNC",
+      "viewType": "function",
+      "functionId": "F001:FN002",
+      "nodes": [
+        {
+          "nodeId": "P001:F001:FN002:FUNC:N001",
+          "nodeType": "start",
+          "label": "Start",
+          "sourceLocation": null
+        },
+        {
+          "nodeId": "P001:F001:FN002:FUNC:N002",
+          "nodeType": "end",
+          "label": "End",
+          "sourceLocation": null
+        },
+        {
+          "nodeId": "P001:F001:FN002:FUNC:N003",
+          "nodeType": "process",
+          "label": "answer = calculate(10, 5)",
+          "sourceLocation": {
+            "fileId": "F001",
+            "startLine": 9,
+            "startColumn": 4,
+            "endLine": 9,
+            "endColumn": 29
+          }
+        },
+        {
+          "nodeId": "P001:F001:FN002:FUNC:N004",
+          "nodeType": "process",
+          "label": "print(answer)",
+          "sourceLocation": {
+            "fileId": "F001",
+            "startLine": 10,
+            "startColumn": 4,
+            "endLine": 10,
+            "endColumn": 17
+          }
+        }
+      ],
+      "edges": [
+        {
+          "edgeId": "P001:F001:FN002:FUNC:E001",
+          "sourceId": "P001:F001:FN002:FUNC:N001",
+          "targetId": "P001:F001:FN002:FUNC:N003",
+          "edgeType": "normal"
+        },
+        {
+          "edgeId": "P001:F001:FN002:FUNC:E002",
+          "sourceId": "P001:F001:FN002:FUNC:N003",
+          "targetId": "P001:F001:FN002:FUNC:N004",
+          "edgeType": "normal"
+        },
+        {
+          "edgeId": "P001:F001:FN002:FUNC:E003",
+          "sourceId": "P001:F001:FN002:FUNC:N004",
+          "targetId": "P001:F001:FN002:FUNC:N002",
+          "edgeType": "normal"
+        }
+      ]
+    }
+  },
+  "files": [
+    {
+      "fileId": "F001",
+      "fileName": "calculator.py",
+      "filePath": "calculator.py",
+      "graphId": "P001:F001:FILE"
+    }
+  ],
+  "functions": [
+    {
+      "functionId": "F001:FN001",
+      "functionName": "calculate",
+      "qualifiedName": "calculator.calculate",
+      "fileId": "F001",
+      "parameters": [
+        "a",
+        "b"
+      ],
+      "startLine": 1,
+      "endLine": 6,
+      "graphId": "P001:F001:FN001:FUNC"
+    },
+    {
+      "functionId": "F001:FN002",
+      "functionName": "main",
+      "qualifiedName": "calculator.main",
+      "fileId": "F001",
+      "parameters": [],
+      "startLine": 8,
+      "endLine": 10,
+      "graphId": "P001:F001:FN002:FUNC"
+    }
+  ],
+  "callReferences": [
+    {
+      "callerFunctionId": "F001:FN002",
+      "calleeFunctionId": "F001:FN001",
+      "location": {
+        "fileId": "F001",
+        "startLine": 9,
+        "startColumn": 13,
+        "endLine": 9,
+        "endColumn": 29
+      }
+    }
+  ],
+  "graphReferences": [
+    {
+      "sourceGraphId": "P001:PROJECT",
+      "sourceNodeId": "P001:PROJECT:N001",
+      "targetGraphId": "P001:F001:FILE"
+    },
+    {
+      "sourceGraphId": "P001:F001:FILE",
+      "sourceNodeId": "P001:F001:FILE:N001",
+      "targetGraphId": "P001:F001:FN001:FUNC"
+    },
+    {
+      "sourceGraphId": "P001:F001:FILE",
+      "sourceNodeId": "P001:F001:FILE:N002",
+      "targetGraphId": "P001:F001:FN002:FUNC"
+    }
+  ],
+  "sourceMappings": [
+    {
+      "graphId": "P001:F001:FILE",
+      "nodeId": "P001:F001:FILE:N001",
+      "location": {
+        "fileId": "F001",
+        "startLine": 1,
+        "startColumn": 0,
+        "endLine": 6,
+        "endColumn": 17
+      }
+    },
+    {
+      "graphId": "P001:F001:FN001:FUNC",
+      "nodeId": "P001:F001:FN001:FUNC:N003",
+      "location": {
+        "fileId": "F001",
+        "startLine": 2,
+        "startColumn": 7,
+        "endLine": 2,
+        "endColumn": 12
+      }
+    },
+    {
+      "graphId": "P001:F001:FN001:FUNC",
+      "nodeId": "P001:F001:FN001:FUNC:N004",
+      "location": {
+        "fileId": "F001",
+        "startLine": 3,
+        "startColumn": 8,
+        "endLine": 3,
+        "endColumn": 22
+      }
+    },
+    {
+      "graphId": "P001:F001:FN001:FUNC",
+      "nodeId": "P001:F001:FN001:FUNC:N005",
+      "location": {
+        "fileId": "F001",
+        "startLine": 5,
+        "startColumn": 8,
+        "endLine": 5,
+        "endColumn": 22
+      }
+    },
+    {
+      "graphId": "P001:F001:FN001:FUNC",
+      "nodeId": "P001:F001:FN001:FUNC:N006",
+      "location": {
+        "fileId": "F001",
+        "startLine": 6,
+        "startColumn": 4,
+        "endLine": 6,
+        "endColumn": 17
+      }
+    },
+    {
+      "graphId": "P001:F001:FILE",
+      "nodeId": "P001:F001:FILE:N002",
+      "location": {
+        "fileId": "F001",
+        "startLine": 8,
+        "startColumn": 0,
+        "endLine": 10,
+        "endColumn": 17
+      }
+    },
+    {
+      "graphId": "P001:F001:FN002:FUNC",
+      "nodeId": "P001:F001:FN002:FUNC:N003",
+      "location": {
+        "fileId": "F001",
+        "startLine": 9,
+        "startColumn": 4,
+        "endLine": 9,
+        "endColumn": 29
+      }
+    },
+    {
+      "graphId": "P001:F001:FN002:FUNC",
+      "nodeId": "P001:F001:FN002:FUNC:N004",
+      "location": {
+        "fileId": "F001",
+        "startLine": 10,
+        "startColumn": 4,
+        "endLine": 10,
+        "endColumn": 17
+      }
+    }
+  ],
+  "diagnostics": []
+}

@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flowbridge-analysis"
+version = "0.0.0"
+description = "FlowBridge Parsing & Analysis module scaffold"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["flowbridge_analysis*"]

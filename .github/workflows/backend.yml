@@ -1,0 +1,43 @@
+name: Backend checks
+
+on:
+  push:
+    branches: [main, codex/finalize-module-integration]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  modules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.11.28"
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run python scripts/check_modules.py
+      - name: Check integration files
+        run: uv run ruff check CodeManager.py FlowBridgeBackend flowbridge scripts tests
+      - run: uv build
+      - name: Verify installed wheel
+        shell: bash
+        run: |
+          uv venv "$RUNNER_TEMP/flowbridge-wheel"
+          uv pip install --python "$RUNNER_TEMP/flowbridge-wheel/bin/python" dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/flowbridge-wheel/bin/python" - <<'PY'
+          import io
+          from FlowBridgeBackend import CodeManager, FlowBridgePipeline
+          from flowbridge import CodeManager as LegacyManager
+          assert LegacyManager is CodeManager
+          manager = CodeManager()
+          manager.loadFile(io.BytesIO(b"def f():\n    return 1\n"), fileName="main.py")
+          result = FlowBridgePipeline(manager).analyze_current()
+          assert result["status"] == "success"
+          assert result["flowchart"]["graphs"]
+          assert result["mapping"]["sourceMappings"]
+          PY
