@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated, Any
 
 import httpx
-from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Query, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -18,7 +18,6 @@ from .models import PyProject, SourceFile
 from .pipeline import FlowBridgePipeline
 from .registry import ProjectRegistry
 from .service import CodeManager
-
 
 
 # These models describe the request and error JSON exchanged with the UI.
@@ -173,7 +172,7 @@ def create_app(
     # Parsing and Analysis integration routes
     @app.post("/api/projects/{projectID}/analyze", responses=ERROR_RESPONSES)
     def analyze_project(
-        projectID: str, registry: Registry, revisionId: int = 1
+        projectID: str, registry: Registry, revisionId: Annotated[int, Query(ge=0)] = 1
     ) -> dict[str, Any]:
         """Run full static analysis on the project, producing Flowchart and Mapping models."""
         project = registry.getProject(projectID)
@@ -182,7 +181,7 @@ def create_app(
 
     @app.get("/api/projects/{projectID}/flowchart", responses=ERROR_RESPONSES)
     def get_flowchart(
-        projectID: str, registry: Registry, revisionId: int = 1
+        projectID: str, registry: Registry, revisionId: Annotated[int, Query(ge=0)] = 1
     ) -> dict[str, Any]:
         """Retrieve Flowchart graph data for Kevin's UI visualizer."""
         project = registry.getProject(projectID)
@@ -192,7 +191,7 @@ def create_app(
 
     @app.get("/api/projects/{projectID}/mapping", responses=ERROR_RESPONSES)
     def get_mapping(
-        projectID: str, registry: Registry, revisionId: int = 1
+        projectID: str, registry: Registry, revisionId: Annotated[int, Query(ge=0)] = 1
     ) -> dict[str, Any]:
         """Retrieve Source Mapping data for Grace's code highlighting / navigation."""
         project = registry.getProject(projectID)

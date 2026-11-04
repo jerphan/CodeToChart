@@ -1,89 +1,97 @@
-# FlowBridge Code Manager
+# FlowBridge
 
-Code Manager accepts a Python file, ZIP, or public GitHub repository. It collects
-the Python files into one project, keeps their original source and folder paths,
-and makes those files available to the parser and source-code view.
+FlowBridge turns Python source into interactive diagrams. Code Manager and
+Parsing & Analysis are connected through a working backend pipeline. The React
+interface is still a prototype and needs to display the returned graphs and highlights.
 
-The repository is now named [FlowBridge](https://github.com/jerphan/FlowBridge).
-This backend is on `codex/code-manager` in [PR #1](https://github.com/jerphan/FlowBridge/pull/1).
-The team's newer React/Vite frontend is on `main`; the backend PR still needs to
-be merged and the UI connected to its routes.
+## Module status
 
-## Start with three files
-
-| File | What to look for |
+| Module | Current state |
 | --- | --- |
-| [flowbridge/service.py](flowbridge/service.py) | `CodeManager`: import a file, ZIP, or GitHub repository, then retrieve the project or an original file. |
-| [flowbridge/models.py](flowbridge/models.py) | `SourceFile` stores one file's ID, name, path, and text; `PyProject` groups the files. |
-| [flowbridge/api.py](flowbridge/api.py) | FastAPI routes that let the UI call the module. |
+| Code Manager | Python, ZIP, and public GitHub imports; project storage and original-source retrieval. |
+| Parsing & Analysis | Connected to Code Manager; produces graph data, diagnostics, and source mappings for its [supported Python subset](FlowBridge_ParsingAndAnalysis/docs/PARSING_FEATURES.md). |
+| Diagram Manager | Graph data is available; layout, interactive rendering, view navigation, and export remain. |
+| Connection Management | Mapping data and source-file routes are available; node selection and code highlighting remain. |
+| User Interface | React/Vite prototype; upload controls and the Start button still need API wiring. |
 
-The root [CodeManager.py](CodeManager.py) only keeps the original import names
-working. The implementation is inside `flowbridge/`.
+## Where to start
 
-## How the module works
+- [FlowBridgeBackend/service.py](FlowBridgeBackend/service.py): Code Manager imports and file lookups.
+- [FlowBridgeBackend/models.py](FlowBridgeBackend/models.py): shared project and source-file fields.
+- [FlowBridgeBackend/api.py](FlowBridgeBackend/api.py): upload, lookup, and analysis routes.
+- [FlowBridgeBackend/pipeline.py](FlowBridgeBackend/pipeline.py): passes the project to Harsha's parser.
+- [FlowBridge_ParsingAndAnalysis](FlowBridge_ParsingAndAnalysis): parser implementation and its integration guide.
+- [FlowBridgeFrontend](FlowBridgeFrontend): the team's React interface.
+
+The implementation lives in `FlowBridgeBackend/`. `CodeManager.py` and the small
+`flowbridge/` package preserve the original imports; they use the same backend
+classes rather than maintaining another implementation.
+
+## How the modules fit together
 
 ```mermaid
 flowchart TD
-    Input["Python file, ZIP, or GitHub URL"] --> API["FastAPI receives the request"]
-    API --> Manager["CodeManager reads and checks the files"]
-    Manager --> Project["PyProject: file IDs, relative paths, original text"]
+    Input["Python file, ZIP, or GitHub URL"] --> Manager["Code Manager"]
+    Manager --> Project["PyProject: file IDs, paths, original source"]
     Project --> Registry["Save the project in memory"]
-    Registry --> Result["Return project JSON to the UI"]
-    Registry --> Lookup["Retrieve an original file by project ID and file ID"]
-    Result -.-> Parser["Next module: Parsing and Analysis"]
+    Registry -->|Analyze request| Pipeline["Pipeline and Parsing & Analysis"]
+    Pipeline --> Outputs["Graph data, diagnostics, source mappings"]
+    Registry --> Lookup["Original-file retrieval"]
+    Outputs -.-> Diagram["Remaining: interactive diagram UI"]
+    Diagram -.-> Highlight["Remaining: selected-node code highlighting"]
+    Lookup -.-> Highlight
 ```
 
-All three inputs produce the same project format. Failed imports leave earlier
-projects available. The dotted arrow is future integration: Code Manager reads
-source as text; Harsha's parser will analyze it and build the graph data.
+Solid arrows are implemented backend behavior. Dotted arrows are remaining UI
+integration. The parser reads source as text and never runs uploaded code.
 
-## Why the other files exist
-
-`readers.py` and `paths.py` handle source text, ZIP entries, and relative paths.
-`github.py` downloads repository ZIPs for that same reader. `registry.py` keeps
-successful projects available between requests, until the server stops.
-`config.py` and `errors.py` hold limits and shared error messages; `cli.py` runs
-the terminal demo.
-
-`tests/` checks behavior, `examples/` supplies a small nested project, and `docs/`
-contains the detailed handoff. `pyproject.toml` lists Python dependencies;
-`uv.lock` records their versions and is generated by uv.
-
-## Run the backend
+## Install and run
 
 Use Python 3.12 and [uv](https://docs.astral.sh/uv/getting-started/installation/).
-From this branch's repository root:
+Run from the repository root:
 
 ```powershell
 uv sync --locked
-uv run uvicorn flowbridge.api:app --host 127.0.0.1 --port 8000
+uv run uvicorn FlowBridgeBackend.api:app --host 127.0.0.1 --port 8000
 ```
 
-Open <http://127.0.0.1:8000/docs> to try file, ZIP, and GitHub imports. The demo
-stores projects in memory, so use one server worker and expect a restart to clear
+Open <http://127.0.0.1:8000/docs>. Import a file, ZIP, or public repository, copy
+its `projectID`, then call `POST /api/projects/{projectID}/analyze`. The response
+contains the full analysis, `flowchart`, and `mapping`.
+
+The demo stores projects in memory. Use one server worker; restarting clears
 them. Public GitHub imports work without a token.
 
-## Test or try one file
+## Verify or demonstrate
 
 ```powershell
-uv run pytest -q --cov=flowbridge --cov-report=term-missing
-uv run flowbridge-code file examples/sample_project/app/main.py
+uv run python scripts/check_modules.py
+uv run python scripts/run_pipeline.py file examples/sample_project/app/main.py --output-dir examples/pipeline_results
 ```
 
-The terminal demo prints the same project JSON returned by the API.
+The check command runs the Code Manager/integration tests and Harsha's separate
+parser suite from their expected working directories. The demo saves matching
+analysis, flowchart, and mapping JSON. Relative and absolute output folders work.
+
+GitHub's **Backend checks** workflow runs both suites, checks backend lint,
+builds the package, and verifies the installed wheel outside the source checkout.
 
 ## HTTP contract
 
-The response contains `projectID`, `projectName`, and `files`. Each file contains
-`fileID`, `fileName`, `filePath`, and `fileContent`. Keep those names and IDs when
-passing the project to another module.
+Imports return `projectID`, `projectName`, and `files`. Each file contains
+`fileID`, `fileName`, `filePath`, and `fileContent`. The analysis adapter maps
+the ID spelling to the parser's `projectId` and `fileId` without changing their values.
 
-See the [route table and sample JSON](docs/CODE_MANAGER_HANDOFF.md#http-contract)
-for integration details.
+Analysis routes accept a nonnegative `revisionId` query parameter, defaulting to 1
+for an imported snapshot. Keep flowchart and mapping results from the same project
+and revision. A future editing coordinator must assign a new revision for changed text.
 
-## More detail when needed
+See the [route table and sample JSON](docs/CODE_MANAGER_HANDOFF.md#http-contract).
 
-- [Full team handoff: setup, methods, JSON, limits, and integration](docs/CODE_MANAGER_HANDOFF.md)
-- [Test evidence and user-validation checklist](docs/VALIDATION.md)
-- [Three slides of module talking points](docs/POWERPOINT_BULLETS.md)
+## Team references
+
+- [Code Manager and backend handoff](docs/CODE_MANAGER_HANDOFF.md)
+- [Parser integration and consumer contracts](FlowBridge_ParsingAndAnalysis/docs/INTEGRATION_GUIDE.md)
+- [Verification evidence and user-validation checklist](docs/VALIDATION.md)
+- [Three slides of Code Manager talking points](docs/POWERPOINT_BULLETS.md)
 - [Class diagram](docs/diagrams/code-manager-class.mmd), [upload sequence](docs/diagrams/upload-sequence.mmd), and [GitHub sequence](docs/diagrams/github-sequence.mmd)

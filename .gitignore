@@ -35,6 +35,8 @@ ENV/
 .pytest_cache/
 .coverage
 htmlcov/
+.ruff_cache/
+.env
 
 # Local pipeline generated results
 examples/pipeline_results/

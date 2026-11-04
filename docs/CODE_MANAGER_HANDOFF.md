@@ -16,6 +16,8 @@ Read these files in this order:
    `github.py` downloads a repository ZIP for this same reader.
 4. `api.py`: accepts UI requests and calls the manager. `registry.py` keeps
    successful imports available for later project and file requests.
+5. `pipeline.py`: passes the saved project to Harsha's parser and returns matching
+   graph and source-mapping output.
 
 A manager holds one current project. A failed import leaves that project alone.
 The API gives each import its own manager, then saves the result in the shared
@@ -42,22 +44,26 @@ existing static frontend files are unchanged.
 
 | File | Responsibility |
 | --- | --- |
-| `flowbridge/models.py` | Shared Pydantic v2 `SourceFile` and `PyProject` contract |
-| `flowbridge/service.py` | `CodeManager`, atomic replacement imports and lookup |
-| `flowbridge/readers.py` | Bounded reads, original-source decoding, ZIP validation |
-| `flowbridge/paths.py` | Safe names and normalized relative paths |
-| `flowbridge/github.py` | GitHub URL validation, metadata, redirects, bounded download |
-| `flowbridge/config.py` | Import, GitHub timeout, and registry configuration |
-| `flowbridge/registry.py` | Locked application-owned project snapshots and source access |
-| `flowbridge/api.py` | FastAPI routes, dependency injection, error handling, CORS |
-| `flowbridge/cli.py` | File/ZIP/GitHub import demonstration, real project JSON |
+| `FlowBridgeBackend/models.py` | Shared Pydantic v2 `SourceFile` and `PyProject` contract |
+| `FlowBridgeBackend/service.py` | `CodeManager`, atomic replacement imports and lookup |
+| `FlowBridgeBackend/readers.py` | Bounded reads, original-source decoding, ZIP validation |
+| `FlowBridgeBackend/paths.py` | Safe names and normalized relative paths |
+| `FlowBridgeBackend/github.py` | GitHub URL validation, metadata, redirects, bounded download |
+| `FlowBridgeBackend/config.py` | Import, GitHub timeout, and registry configuration |
+| `FlowBridgeBackend/registry.py` | Locked application-owned project snapshots and source access |
+| `FlowBridgeBackend/api.py` | FastAPI routes, dependency injection, error handling, CORS |
+| `FlowBridgeBackend/pipeline.py` | Code Manager to parser handoff and matching consumer outputs |
+| `flowbridge/`, `CodeManager.py` | Original import names pointing to the current backend |
+| `FlowBridgeBackend/cli.py` | File/ZIP/GitHub import demonstration, real project JSON |
 | `tests/` | Offline automated model, loader, GitHub, API, registry, and CLI tests |
 | `examples/sample_project/` | Three nested Python files with duplicate basenames |
 | `scripts/smoke_api.py` | Real localhost HTTP/server startup demonstration |
 | `pyproject.toml`, `uv.lock` | Python 3.12 baseline, reproducible dependency workflow |
 
-No parser, language-feature validation, AST analysis, graph output, source-location
-calculation, authentication, or diagram rendering is implemented by this module.
+Code Manager owns source acquisition and retrieval. Parsing, graph construction,
+and source locations come from the separate Parsing & Analysis package through
+the pipeline below. Authentication, diagram layout/rendering, and highlighting
+are outside Code Manager.
 No uploaded modules are imported, executed, or installed. Python syntax errors are
 preserved as text for the parser. Input decoding errors are handled here.
 
@@ -69,11 +75,11 @@ React, React Flow, and Vitest belong to the UI/diagram work. SQLite is the propo
 persistence option; this demo uses the in-memory registry requested by the module
 specification.
 
-Use Python 3.12 and uv. From the repository root on `codex/code-manager`:
+Use Python 3.12 and uv from the repository root:
 
 ```powershell
 uv sync --locked
-uv run uvicorn flowbridge.api:app --host 127.0.0.1 --port 8000
+uv run uvicorn FlowBridgeBackend.api:app --host 127.0.0.1 --port 8000
 ```
 
 Open `http://127.0.0.1:8000/docs`. Use one server worker; each process has a
@@ -200,6 +206,9 @@ See the [HTTP contract](#http-contract) for the exact payload.
 | `GET /api/projects/{projectID}` | Project ID | 200, project JSON |
 | `GET /api/projects/{projectID}/files/{fileID}` | Both IDs | 200, original SourceFile JSON |
 | `GET /health` | None | 200, health JSON |
+| `POST /api/projects/{projectID}/analyze` | Project ID, optional `revisionId` query parameter | 200, analysis plus flowchart and mapping JSON |
+| `GET /api/projects/{projectID}/flowchart` | Project ID, optional `revisionId` query parameter | 200, flowchart JSON |
+| `GET /api/projects/{projectID}/mapping` | Project ID, optional `revisionId` query parameter | 200, source-mapping JSON |
 
 The import response is the project itself:
 
@@ -381,36 +390,51 @@ the backend branch.
 
 ## Parser and source-mapping handoff
 
-The application-level coordinator owns this future integration, outside Code Manager:
+`FlowBridgePipeline` connects the existing manager to Harsha's analysis package.
+Code Manager's source-reading methods and the parser's algorithms remain separate.
 
 ```python
-# Wiring example for when Harsha's real service is available:
-project = manager.getProject()
-analysis = parser_service.analyzeProject(project)
-# If his final boundary is JSON instead: project.model_dump() / model_dump_json().
+from FlowBridgeBackend import FlowBridgePipeline
+
+result = FlowBridgePipeline(manager).analyze_current(revision_id=1)
+flowchart = result["flowchart"]
+mapping = result["mapping"]
 ```
 
-Harsha should import `PyProject` and `SourceFile` from `flowbridge` and retain the
-received project/file IDs in analysis and source-location metadata. `fileContent`
-is the exact decoded input; do not rename it to `content` or regenerate file IDs.
-The parser must define its supported Python grammar and line/column conventions.
-It must not mutate original source when producing analysis. No real parser is
-present in the repository, so no parser output or diagrams are claimed here.
+The pipeline serializes the complete project, normalizes `projectID`/`fileID` to
+the parser's `projectId`/`fileId`, and analyzes once before creating both output
+projections. Identity values, relative paths, and original text stay unchanged.
+The full response also includes `analysis`, `status`, `projectId`, `projectName`,
+and `revisionId`.
 
-The Source-Mapping Layer resolves graph/node IDs to a `SourceLocation` in its own
-module. Once it has a `fileID`, it uses the matching manager context:
+Use `POST /api/projects/{projectID}/analyze` when both outputs are needed.
+The separate flowchart/mapping GET routes are conveniences that reanalyze the
+same saved snapshot. Pair results only when project and revision IDs match.
+
+The optional `revisionId` query parameter defaults to 1 and must be nonnegative;
+invalid values return the existing HTTP 400 `INVALID_REQUEST` response. This
+version imports immutable source snapshots. If editing is added, the coordinating
+backend must allocate a new revision before analyzing changed text and the UI
+must discard stale responses. The adapter does not assign revisions or keep a counter.
+
+Python syntax errors become analysis diagnostics and a partial result; they do
+not overwrite original source. Unsupported features also produce explicit statuses
+and diagnostics. See the parser's [integration guide](../FlowBridge_ParsingAndAnalysis/docs/INTEGRATION_GUIDE.md)
+and [supported subset](../FlowBridge_ParsingAndAnalysis/docs/PARSING_FEATURES.md).
+
+The future Source-Mapping Layer finds a mapping using `graphId` and `nodeId`,
+then uses its `location.fileId` with the original project ID:
 
 ```python
-original = manager.getSourceFile(location.fileID)
-# Or, for the application registry:
-original = registry.getSourceFile(projectID, location.fileID)
+file_id = selected_mapping["location"]["fileId"]
+original = registry.getSourceFile(project_id, file_id)
 ```
 
-The browser equivalent is
-`GET /api/projects/{projectID}/files/{fileID}`. Render `fileContent` as plain code
-text, then apply the parser's line/column range. A file ID from another project
-must not resolve in the current project. Code Manager does not calculate ranges
-or highlight selections.
+The browser equivalent is `GET /api/projects/{projectID}/files/{fileID}`.
+Mapping locations use one-based lines, zero-based UTF-8 byte columns, and
+exclusive end positions. Convert those columns to the editor's coordinates
+before highlighting; JavaScript string indexes are not UTF-8 byte offsets.
+Selecting nodes and applying highlights remain UI/connection-management work.
 
 ## UML revisions
 
@@ -422,14 +446,14 @@ or highlight selections.
   explicit `getSourceFileByPath(filePath)` for path lookup.
 - Clarify that the legacy `getFileID(fileID)` returns a `SourceFile` object.
 - Place the parser call in an application coordinator after successful import;
-  Code Manager has no dependency on the parsing module.
+  the source acquisition service stays independent of parsing.
 - Show the application registry with project-scoped source retrieval and atomic
   capacity registration. See the matching `.mmd` sources in `docs/diagrams/`.
 
 ## Remaining team integration work
 
 1. Connect upload/repository controls in the real UI to the working API.
-2. Agree on and wire Harsha's actual `analyzeProject` boundary and diagnostics.
+2. Display the pipeline's graphs and diagnostics, keeping project/revision IDs paired.
 3. Carry file IDs into SourceLocation metadata, then connect graph selection to
    project-scoped original-file retrieval and highlighting.
 4. Complete diagram generation/rendering/export in the relevant modules.

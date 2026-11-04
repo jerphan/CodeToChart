@@ -4,13 +4,44 @@ Module owner: Justin Bean
 
 Initial verification: November 1, 2026 (America/Chicago)
 
-Latest verification: November 3, 2026 (America/Chicago)
+Latest verification: November 4, 2026 (America/Chicago)
 
 Repository base: `jerphan/CodeToChart`, commit `9fdaf1fa0c898b709bbf443647dcb1f7fb2950e7`
 
-Implementation branch: `codex/code-manager`
+Original implementation branch: `codex/code-manager`
 
-## Completed verification
+## Combined module verification, November 4
+
+The integration fixes keep Code Manager's source-reading methods and Harsha's
+parser implementation unchanged. They restore legacy imports, include both
+packages in the wheel, validate API revision parameters, and correct the demo's
+output paths. The root dependency lock and Python 3.12 version file are restored.
+
+| Check | Actual result |
+| --- | --- |
+| Code Manager and integration pytest suite | **190 passed**: 171 existing cases and 19 new integration/demo regressions |
+| Harsha's parser unittest suite | **219 passed**, run from its own module folder |
+| Backend statement coverage | **97%**, rounded, for `FlowBridgeBackend`; subprocess demo execution is not included |
+| Python/ZIP/mocked-GitHub to graph/mapping handoff | Passed; identity, duplicate basenames, decoded text, and revision pairing preserved |
+| Invalid revisions on all three analysis routes | Clear HTTP 400 JSON errors, including negative, non-integer, and fractional input |
+| Syntax-error analysis | Partial result and syntax diagnostics; original source and earlier projects retained |
+| Pipeline CLI output folders | Relative and absolute folders outside the repository passed; negative revisions rejected before writing |
+| Wheel contents | Both implementation packages, legacy imports, and no bytecode caches |
+| Installation outside the checkout | Installed wheel pipeline, API imports, shared class identities, source preservation, and console entry point passed |
+| Source distribution and wheel build | Passed |
+| Backend lint | `ruff check CodeManager.py FlowBridgeBackend flowbridge scripts tests` passed |
+| Intended-user validation | **NOT RUN** |
+
+Run both suites with `uv run python scripts/check_modules.py`. They retain their
+separate working directories because some parser fixtures use relative paths.
+The Backend checks workflow runs this command, backend lint, a build, and an
+installed-wheel smoke check. Deployment is managed separately by Jerry.
+
+The parser's existing style findings under the root Ruff configuration were not
+rewritten as part of these integration fixes. Its own 219 functional tests pass.
+No frontend, parser algorithm, or source-acquisition behavior was rewritten.
+
+## Earlier Code Manager verification, November 1-3
 
 The automated suite, lint, and formatting were rerun on November 3 after adding
 short function comments and a reading guide. Comparing the Python syntax trees
