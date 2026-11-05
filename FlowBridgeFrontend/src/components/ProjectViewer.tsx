@@ -13,6 +13,27 @@ interface sourceFileCardProperties{
     file : sourceFile;
 }
 
+function SourceFileCard({ file }: sourceFileCardProperties) {
+  const lines = file.fileContent.split(/\r?\n/);
+
+  return (
+    <article className="fileCard">
+      <div className="fileCardBody">
+        <pre className="filePreview">
+          <code>
+            {lines.map((line, index) => (
+              <div key={index} className="fileCodeLine">
+                <span className="fileLineNumber">{index + 1}</span>
+                <span className="fileLineText">{line || " "}</span>
+              </div>
+            ))}
+          </code>
+        </pre>
+      </div>
+    </article>
+  );
+}
+
 export default function ProjectViewer({project, onSelectFile} : projectViewerProperties){
     const [selectedFileID, setSelectedFileID] = useState<string | null>(null)
     
@@ -37,5 +58,33 @@ export default function ProjectViewer({project, onSelectFile} : projectViewerPro
         onSelectFile?.(file);
     };
 
+    const projectFiles = project?.files;
 
+    return (
+        <div className="projectFileExplorer">
+            <li className="projectFileList" aria-label="Project Source Files">
+                {projectFiles?.map((file) => {
+                    const isSelected = activeFile?.fileID === file.fileID;
+                    if(activeFile != null){
+                        return (
+                        <li key = {file.fileName}>
+                            
+                            <button type="button" className = "fileListCard" onClick = {() => handleFileClicked(file)}>
+                                {file.fileName}
+                            </button>
+                        </li>
+                        );
+                    }
+                })}
+            </li>
+
+            <div className="projectFileDetail">
+            {activeFile ? (
+                <SourceFileCard file={activeFile} />
+            ) : (
+                <div className="pyProjectNoMatches">Select a file to view its content.</div>
+            )}
+            </div>
+        </div>
+    );
 }
