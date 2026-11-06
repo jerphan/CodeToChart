@@ -71,6 +71,21 @@ def test_import_analysis_and_original_source_handoff(kind, revision, make_zip, m
         for mapping in result["mapping"]["sourceMappings"]:
             file_id = mapping["location"]["fileId"]
             assert client.get(f"{project_url}/files/{file_id}").json() == originals[file_id]
+            selected = client.get(
+                f"{project_url}/source-location",
+                params={
+                    "graphId": mapping["graphId"],
+                    "nodeId": mapping["nodeId"],
+                    "revisionId": revision,
+                },
+            )
+            assert selected.status_code == 200
+            assert selected.json() == {
+                "projectId": project["projectID"],
+                "revisionId": revision,
+                "location": mapping["location"],
+                "file": originals[file_id],
+            }
         expected = {path: content for path, content in sources}
         for file in originals.values():
             raw = sources[0][1] if kind == "file" else expected[file["filePath"]]
@@ -79,7 +94,13 @@ def test_import_analysis_and_original_source_handoff(kind, revision, make_zip, m
 
 
 @pytest.mark.parametrize(
-    "route,method", [("analyze", "post"), ("flowchart", "get"), ("mapping", "get")]
+    "route,method",
+    [
+        ("analyze", "post"),
+        ("flowchart", "get"),
+        ("mapping", "get"),
+        ("source-location", "get"),
+    ],
 )
 @pytest.mark.parametrize("revision", ["-1", "invalid", "1.5"])
 def test_invalid_analysis_revisions_return_input_errors(route, method, revision):
@@ -88,10 +109,72 @@ def test_invalid_analysis_revisions_return_input_errors(route, method, revision)
             "/api/projects/file", files={"file": ("main.py", b"def f():\n    pass\n")}
         ).json()
         response = getattr(client, method)(
-            f"/api/projects/{project['projectID']}/{route}", params={"revisionId": revision}
+            f"/api/projects/{project['projectID']}/{route}",
+            params={"revisionId": revision, "graphId": "g", "nodeId": "n"},
         )
         assert response.status_code == 400
         assert response.json()["error"]["code"] == "INVALID_REQUEST"
+
+
+def test_source_selection_uses_original_unicode_byte_columns_and_context():
+    source = 'def greeting():\r\n\treturn "café"\r\n'
+    with TestClient(create_app()) as client:
+        project = client.post(
+            "/api/projects/file", files={"file": ("main.py", source.encode("utf-8"))}
+        ).json()
+        url = f"/api/projects/{project['projectID']}"
+        analyzed = client.post(f"{url}/analyze", params={"revisionId": 7}).json()
+        entry = next(
+            entry
+            for entry in analyzed["mapping"]["sourceMappings"]
+            if entry["location"]["startLine"] == 2
+        )
+        params = {"graphId": entry["graphId"], "nodeId": entry["nodeId"], "revisionId": 7}
+        selected = client.get(f"{url}/source-location", params=params)
+        assert selected.status_code == 200
+        assert selected.json()["file"] == project["files"][0]
+        location = selected.json()["location"]
+        assert location == entry["location"]
+        encoded_line = source.splitlines()[1].encode("utf-8")
+        assert (
+            encoded_line[location["startColumn"] : location["endColumn"]]
+            == 'return "café"'.encode()
+        )
+
+        for bad_params in [{**params, "nodeId": "missing"}, {**params, "revisionId": 8}]:
+            missing = client.get(f"{url}/source-location", params=bad_params)
+            assert missing.status_code == 404
+            assert missing.json()["error"]["code"] == "SOURCE_MAPPING_NOT_FOUND"
+        synthetic_nodes = [
+            (graph["graphId"], node["nodeId"])
+            for graph in analyzed["flowchart"]["graphs"].values()
+            if graph["graphType"] == "function"
+            for node in graph["nodes"]
+            if node["sourceLocation"] is None
+        ]
+        assert len(synthetic_nodes) >= 2
+        for graph_id, node_id in synthetic_nodes:
+            synthetic = client.get(
+                f"{url}/source-location",
+                params={
+                    **params,
+                    "graphId": graph_id,
+                    "nodeId": node_id,
+                },
+            )
+            assert synthetic.status_code == 404
+            assert synthetic.json()["error"]["code"] == "SOURCE_MAPPING_NOT_FOUND"
+        other = client.post("/api/projects/file", files={"file": ("other.py", b"x = 2\n")}).json()
+        assert (
+            client.get(
+                f"/api/projects/{other['projectID']}/source-location", params=params
+            ).status_code
+            == 404
+        )
+        unknown = client.get("/api/projects/missing/source-location", params=params)
+        assert unknown.status_code == 404
+        assert unknown.json()["error"]["code"] == "PROJECT_NOT_FOUND"
+        assert client.get(f"{url}/source-location").status_code == 400
 
 
 def test_invalid_python_produces_diagnostics_without_losing_original_source():
