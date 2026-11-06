@@ -4,11 +4,27 @@ Module owner: Justin Bean
 
 Initial verification: November 1, 2026 (America/Chicago)
 
-Latest verification: November 5, 2026 (America/Chicago)
+Latest verification: November 6, 2026 (America/Chicago)
 
 Repository base: `jerphan/CodeToChart`, commit `9fdaf1fa0c898b709bbf443647dcb1f7fb2950e7`
 
 Original implementation branch: `codex/code-manager`
+
+## Parser update integration verification, November 6
+
+Harsha's `d7d74ec` adds bounded module CFGs, annotated/augmented assignments,
+try/loop-else lexical traversal, module calls, and unused End-node pruning.
+The additive `graphType: module` value is documented for diagram consumers.
+
+Actual results: **219 backend pytest cases and 273 parser unittest cases passed
+(492 total)**. Backend lint and source/wheel builds passed. File, ZIP, and mocked
+GitHub handoffs exercise module/function graphs, navigation, resolved calls,
+revision isolation, and original-source retrieval with CRLF/tabs retained.
+
+Review regressions corrected nested module-return acceptance, guessed call
+targets when unsupported try clauses hide bindings, and partial file state after
+CFG construction failure. No Code Manager acquisition or Source Mapping changes.
+Browser end-to-end and intended-user validation remain **NOT RUN**.
 
 ## Source Mapping integration verification, November 5
 
