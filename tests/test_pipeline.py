@@ -10,7 +10,11 @@ from FlowBridgeBackend.config import GitHubSettings
 @pytest.mark.parametrize("revision", [0, 7])
 def test_import_analysis_and_original_source_handoff(kind, revision, make_zip, mock_client):
     sources = [
-        ("app/main.py", b"def add(a, b):\r\n\treturn a + b\r\n"),
+        (
+            "app/main.py",
+            b"def add(a, b):\r\n\treturn a + b\r\n\r\ntotal: int = 0\r\n"
+            b"for number in range(3):\r\n\ttotal += add(number, 1)\r\nelse:\r\n\tprint(total)\r\n",
+        ),
         ("tests/main.py", b'# coding: latin-1\r\ndef greeting():\r\n    return "caf\xe9"\r\n'),
     ]
     github_zip = make_zip([(f"owner-repo-abcdef1/{path}", text) for path, text in sources])
@@ -56,6 +60,17 @@ def test_import_analysis_and_original_source_handoff(kind, revision, make_zip, m
         assert result["projectId"] == project["projectID"]
         assert result["revisionId"] == revision
         assert result["flowchart"]["revisionId"] == result["mapping"]["revisionId"] == revision
+        graphs = result["flowchart"]["graphs"]
+        assert {graph["graphType"] for graph in graphs.values()} >= {"function", "module"}
+        for reference in result["flowchart"]["graphReferences"]:
+            assert reference["targetGraphId"] in graphs
+        call = next(
+            call
+            for call in result["analysis"]["callReferences"]
+            if call["expression"] == "add(number, 1)"
+        )
+        assert call["resolution"] == "resolved"
+        assert call["targetGraphId"] in graphs
         assert (
             client.get(f"{project_url}/flowchart", params={"revisionId": revision}).json()
             == result["flowchart"]
@@ -175,6 +190,20 @@ def test_source_selection_uses_original_unicode_byte_columns_and_context():
         assert unknown.status_code == 404
         assert unknown.json()["error"]["code"] == "PROJECT_NOT_FOUND"
         assert client.get(f"{url}/source-location").status_code == 400
+
+
+@pytest.mark.parametrize("source", ["if True:\n    return 1\n", "for x in [1]:\n    return x\n"])
+def test_invalid_module_control_flow_returns_partial_analysis(source):
+    with TestClient(create_app()) as client:
+        project = client.post(
+            "/api/projects/file", files={"file": ("main.py", source.encode())}
+        ).json()
+        response = client.post(f"/api/projects/{project['projectID']}/analyze")
+        assert response.status_code == 200
+        assert response.json()["status"] == "partial"
+        assert any(
+            d["code"] == "UNSUPPORTED_FEATURE" for d in response.json()["analysis"]["diagnostics"]
+        )
 
 
 def test_invalid_python_produces_diagnostics_without_losing_original_source():
